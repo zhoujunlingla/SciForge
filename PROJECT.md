@@ -71,6 +71,50 @@
 
 ## 任务板
 
+### R015 GitHub 同步与本地优先治理
+
+职责：把本地 SciForge 工作树同步到 `zhoujunlingla/SciForge` fork，并建立“所有修改先在本地分支修复、按项目原则验证、记录变更后再推远程”的长期协作规则。该任务只管理同步与治理流程，不改变科研复现 runtime 行为。
+
+执行规则：
+
+- 所有代码、文档和配置结构修改必须先在本地新分支完成，经过必要检查后再提交到远程仓库。
+- 不提交本地密钥、模型 API key、`config.local.json`、`.sciforge/`、`workspace/` 运行产物、`node_modules/` 或构建产物。
+- 每次修改都必须在 commit message、PR/issue 说明或本任务记录中说明动机、影响范围、验证结果和后续 TODO。
+- Codex 后续修复问题时必须先阅读本文件的当前目标、开工前必读、不变原则，以及 `docs/Architecture.md`、`docs/AgentHarnessStandard.md`、`docs/Extending.md`、`docs/SciForgeConversationSessionRecovery.md` 中与任务相关的设计边界。
+- 修复必须符合 Backend-first、Contract-enforced、Capability-driven、Harness-governed 原则；不得为了当前案例引入 prompt/provider/scenario 特例。
+- 新增能力优先进入 `packages/` 的 manifest、schema、validator、provider、repair hints；平台生命周期、workspace writer、gateway、validation/repair loop 仍归 `src/` 固定运行时管理。
+- TODO 必须具体、可验证、可删除；不能把长期架构愿景当作开放式 TODO。
+
+当前分支：
+
+- `codex/github-sync-governance`
+
+远程：
+
+- 上游：`origin = https://github.com/AGI4Sci/SciForge.git`
+- 个人 fork：`personal = https://github.com/zhoujunlingla/SciForge.git`
+
+变更记录：
+
+- 2026-05-11：创建本地治理分支 `codex/github-sync-governance`；新增 `DOCS_READING_GUIDE_zh.md` 和 `SCIFORGE_FUNCTION_ANALYSIS_zh.md`，用于帮助理解项目文档、功能边界和后续复现/扩展路线。
+- 2026-05-11：确认敏感配置 `config.local.json`、`.sciforge/`、`workspace/`、`node_modules/`、`dist-ui/` 均被 ignore；确认 `zhoujunlingla/SciForge` fork 已创建，当前 GitHub connector 对该仓库有 push 权限。
+
+Todo：
+
+- [x] 创建或确认 `zhoujunlingla/SciForge` fork。
+- [x] 新增 `personal` remote，保留 `origin` 指向上游，避免误推上游。
+- [x] 首次同步前检查 ignore 规则，确认密钥、运行态文件和依赖目录不会进入提交。
+- [x] 首次同步前运行文档/轻量验证：`git diff --check`。
+- [ ] 将 `codex/github-sync-governance` 推送到 `personal` remote。
+- [ ] 首次 push 后在 GitHub PR/issue 中记录本地分支、commit、验证命令和后续任务。
+
+验收：
+
+- [x] `PROJECT.md` 中维护清晰的任务、TODO、变更记录和验证记录。
+- [x] 远程仓库存在且 connector 具备 push 权限。
+- [x] 首次同步只包含可公开的源码/文档，不包含本地密钥或运行产物。
+- [ ] 后续每次修改都有本地分支、commit 说明、验证结果和 GitHub 记录。
+
 ### R013 多轮连续对话与审计追问恢复
 
 职责：修复已有结果后的低风险追问在 backend/stream 中断时被整轮标失败的问题。唯一真相源是 `packages/agent-harness` 的 harness contract：`balanced-default.context-audit-intent` 将“怎么来的、用了哪些工具/refs、为什么失败/中断”等低风险审计追问归类为 `intentMode=audit`，并偏好 `runtime.direct-context-answer`；真正需要新检索、下载、重跑或修复的请求仍必须走 backend。
